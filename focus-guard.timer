@@ -1,0 +1,12 @@
+[Unit]
+Description=Re-check the focus-project gate when the day turns
+
+[Timer]
+OnCalendar=*-*-* 00:00:30
+OnCalendar=*-*-* 11:00:30
+Unit=focus-guard.service
+Persistent=true
+AccuracySec=1s
+
+[Install]
+WantedBy=timers.target

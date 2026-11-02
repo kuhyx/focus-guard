@@ -1,0 +1,88 @@
+# Copyright (c) 2026 Krzysztof Rudnicki. MIT License.
+"""The lock's one question, about yesterday. Pure reads, no writes.
+
+focus_project is called through the module so tests patch one attribute.
+A registry that cannot be read raises; the caller picks the failure mode.
+"""
+
+from __future__ import annotations
+
+from dataclasses import dataclass
+from datetime import date, datetime, timedelta
+from typing import TYPE_CHECKING
+
+import focus_project
+import freedays
+import sickdays
+
+from focus_guard._constants import JUDGE_FROM
+
+if TYPE_CHECKING:
+    from focus_project import Project
+
+
+@dataclass(frozen=True)
+class Verdict:
+    """The decision plus the numbers the lock window shows."""
+
+    locked: bool
+    reason: str
+    name: str = ""
+    today_minutes: int = 0
+    unlock_minutes: int = 0
+    yesterday_minutes: int = 0
+    daily_minutes: int = 0
+
+
+def local_today() -> date:
+    """Today's date in the local zone."""
+    return datetime.now().astimezone().date()
+
+
+def _off(day: date) -> bool:
+    return sickdays.is_sick_day(day) or freedays.is_free_day(day)
+
+
+def _kept(yesterday: date, project: Project) -> tuple[bool, int]:
+    if _off(yesterday):
+        return True, 0
+    minutes = focus_project.minutes_for(yesterday)
+    return minutes >= project.daily_minutes, minutes
+
+
+def _preconditions(today: date) -> tuple[Project, Project] | str:
+    """Today's and yesterday's project, or why the gate stands down."""
+    yesterday = today - timedelta(days=1)
+    if yesterday < JUDGE_FROM:
+        return "before the first judged day"
+    if _off(today):
+        return "today is a sick or free day"
+    project = focus_project.active(today)
+    if project is None:
+        return "no project today"
+    before = focus_project.active(yesterday)
+    if before is None:
+        return "yesterday was not a project day"
+    return project, before
+
+
+def decide(today: date) -> Verdict:
+    """Locked iff yesterday missed its number and today is still short."""
+    found = _preconditions(today)
+    if isinstance(found, str):
+        return Verdict(locked=False, reason=found)
+    project, before = found
+    kept, missed_with = _kept(today - timedelta(days=1), before)
+    if kept:
+        return Verdict(locked=False, reason="yesterday kept its number")
+    done = focus_project.minutes_for(today)
+    shown = {
+        "name": project.name,
+        "today_minutes": done,
+        "unlock_minutes": project.unlock_minutes,
+        "yesterday_minutes": missed_with,
+        "daily_minutes": before.daily_minutes,
+    }
+    if done >= project.unlock_minutes:
+        return Verdict(locked=False, reason="today's minutes are in", **shown)
+    return Verdict(locked=True, reason="yesterday fell short", **shown)

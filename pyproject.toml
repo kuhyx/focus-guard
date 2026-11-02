@@ -1,0 +1,97 @@
+[project]
+name = "focus-guard"
+version = "0.1.0"
+description = "Tkinter/systemd gate that locks the PC after a missed focus-project day until today's minutes are in"
+requires-python = ">=3.14"
+# gatelock: shared lock-window/arbiter backend (all the lockers).
+# freedays / sickdays: the shared pools every gate consults.
+# focus_project (kuhyx/utils) is not tagged yet, so it is not listed here:
+# install.sh, setup_dev.sh and CI install it from a utils checkout.
+dependencies = [
+    "gatelock @ git+https://github.com/kuhyx/utils@gatelock-v0.11.0#subdirectory=gatelock",
+    "freedays @ git+https://github.com/kuhyx/utils@freedays-v0.4.0#subdirectory=freedays",
+    "sickdays @ git+https://github.com/kuhyx/utils@sickdays-v0.3.0#subdirectory=sickdays",
+]
+
+[project.scripts]
+focus-guard = "focus_guard._cli:main"
+
+[project.optional-dependencies]
+dev = ["mypy==2.4.1", "pylint==4.1.3", "pytest==9.2.0", "pytest-cov==7.1.0"]
+
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["focus_guard*"]
+
+[tool.ruff]
+target-version = "py314"
+include = ["*.py", "**/*.py"]
+exclude = [".git", ".venv", "__pycache__", "build", "dist"]
+
+[tool.ruff.lint]
+select = ["ALL"]
+ignore = ["D203", "D213", "COM812", "ISC001", "S603"]
+
+# Test-only relaxations, as in the sibling guard repos.
+[tool.ruff.lint.per-file-ignores]
+"focus_guard/tests/**" = ["S101", "ANN", "D", "PLR2004", "SLF001", "S108", "ARG", "PT", "INP001"]
+"scripts/**" = ["T201", "INP001", "D"]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.ruff.lint.isort]
+force-sort-within-sections = true
+known-first-party = ["focus_guard"]
+
+[tool.ruff.lint.flake8-tidy-imports]
+ban-relative-imports = "all"
+
+[tool.mypy]
+python_version = "3.14"
+strict = true
+warn_unreachable = true
+ignore_missing_imports = true
+show_error_codes = true
+exclude = [".venv/"]
+
+[tool.pylint.main]
+py-version = "3.14"
+jobs = 0
+ignore = [".venv", "__pycache__"]
+ignore-paths = ["^(.*/)?tests/.*$"]
+
+[tool.pylint.messages_control]
+enable = "all"
+disable = [
+    "use-implicit-booleaness-not-comparison",
+    "use-implicit-booleaness-not-comparison-to-string",
+    "use-implicit-booleaness-not-comparison-to-zero",
+]
+
+[tool.pylint.design]
+min-public-methods = 0
+max-attributes = 10
+
+[tool.bandit]
+exclude_dirs = ["tests", ".venv"]
+
+[tool.pytest.ini_options]
+testpaths = ["focus_guard/tests"]
+addopts = [
+    "-q",
+    "--strict-markers",
+    "--strict-config",
+    "-ra",
+    "--cov=focus_guard",
+    "--cov-branch",
+    "--cov-report=term-missing",
+    "--cov-fail-under=100",
+]
+filterwarnings = ["error::ResourceWarning", "error::pytest.PytestUnraisableExceptionWarning"]
+
+[tool.coverage.run]
+omit = ["focus_guard/tests/*"]
