@@ -47,7 +47,7 @@ def _kept(yesterday: date, project: Project) -> tuple[bool, int]:
     if _off(yesterday):
         return True, 0
     minutes = focus_project.minutes_for(yesterday)
-    return minutes >= project.daily_minutes, minutes
+    return minutes >= project.daily_on(yesterday), minutes
 
 
 def _preconditions(today: date) -> tuple[Project, Project] | str:
@@ -76,13 +76,14 @@ def decide(today: date) -> Verdict:
     if kept:
         return Verdict(locked=False, reason="yesterday kept its number")
     done = focus_project.minutes_for(today)
-    unlocked = done >= project.unlock_minutes
+    need = project.unlock_on(today)
+    unlocked = done >= need
     return Verdict(
         locked=not unlocked,
         reason="today's minutes are in" if unlocked else "yesterday fell short",
         name=project.name,
         today_minutes=done,
-        unlock_minutes=project.unlock_minutes,
+        unlock_minutes=need,
         yesterday_minutes=missed_with,
-        daily_minutes=before.daily_minutes,
+        daily_minutes=before.daily_on(today - timedelta(days=1)),
     )

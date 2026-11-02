@@ -8,7 +8,7 @@ from datetime import date, timedelta
 from types import SimpleNamespace
 from typing import TYPE_CHECKING
 
-from focus_project import Project
+from focus_project import Limits, Project
 import pytest
 
 from focus_guard import _lock, _paths
@@ -22,16 +22,22 @@ if TYPE_CHECKING:
 
 
 def project(
-    name: str = "Exam", start: date = date(2026, 11, 2), end: date = date(2026, 11, 8)
+    start: date = date(2026, 11, 2),
+    end: date = date(2026, 11, 8),
+    *,
+    history: tuple[Limits, ...] = (),
+    daily: int = 120,
+    unlock: int = 30,
 ) -> Project:
     return Project(
-        id=name.lower(),
-        name=name,
+        id="exam",
+        name="Exam",
         start=start,
         end=end,
         replaces=("leetcode",),
-        daily_minutes=120,
-        unlock_minutes=30,
+        daily_minutes=daily,
+        unlock_minutes=unlock,
+        history=history,
     )
 
 
