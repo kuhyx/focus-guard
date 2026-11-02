@@ -52,7 +52,7 @@ def main() -> int:
         daily_minutes=120,
         unlock_minutes=30,
     )
-    focus_project.minutes_for = _fake_minutes(args.minutes_file)
+    vars(focus_project)["minutes_for"] = _fake_minutes(args.minutes_file)
     _paths.MORNING_RETRY_SECONDS = 0.0
     return run_gate(_paths.paths(), production=True, today=args.today)
 

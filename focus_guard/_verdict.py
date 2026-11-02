@@ -76,13 +76,13 @@ def decide(today: date) -> Verdict:
     if kept:
         return Verdict(locked=False, reason="yesterday kept its number")
     done = focus_project.minutes_for(today)
-    shown = {
-        "name": project.name,
-        "today_minutes": done,
-        "unlock_minutes": project.unlock_minutes,
-        "yesterday_minutes": missed_with,
-        "daily_minutes": before.daily_minutes,
-    }
-    if done >= project.unlock_minutes:
-        return Verdict(locked=False, reason="today's minutes are in", **shown)
-    return Verdict(locked=True, reason="yesterday fell short", **shown)
+    unlocked = done >= project.unlock_minutes
+    return Verdict(
+        locked=not unlocked,
+        reason="today's minutes are in" if unlocked else "yesterday fell short",
+        name=project.name,
+        today_minutes=done,
+        unlock_minutes=project.unlock_minutes,
+        yesterday_minutes=missed_with,
+        daily_minutes=before.daily_minutes,
+    )

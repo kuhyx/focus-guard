@@ -7,19 +7,15 @@ REPO_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 readonly REPO_DIR
 readonly SYSTEM_PYTHON="/usr/bin/python3"
 readonly UNIT_DIR="${HOME}/.config/systemd/user"
-readonly UTILS_ROOT="${UTILS_ROOT:-$HOME/src/utils}"
 readonly UNITS=(focus-guard.service focus-guard.timer)
 
 log() { printf 'install: %s\n' "$1" >&2; }
 fail() { printf 'install: FAILED -- %s\n' "$1" >&2; exit 1; }
 
 install_packages() {
-    [[ -d "${UTILS_ROOT}/focus_project" ]] || fail "${UTILS_ROOT}/focus_project missing"
     log "installing into the system python's user site-packages"
-    "$SYSTEM_PYTHON" -m pip install --user --break-system-packages -q -e "${UTILS_ROOT}/focus_project" \
-        || fail "pip install focus_project"
     "$SYSTEM_PYTHON" -m pip install --user --break-system-packages -q -e "$REPO_DIR" \
-        || fail "pip install focus-guard"
+        || fail "pip install focus-guard (pulls the pinned focus-project)"
 }
 
 verify_runtime() {

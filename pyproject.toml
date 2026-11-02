@@ -5,11 +5,10 @@ description = "Tkinter/systemd gate that locks the PC after a missed focus-proje
 requires-python = ">=3.14"
 # gatelock: shared lock-window/arbiter backend (all the lockers).
 # freedays / sickdays: the shared pools every gate consults.
-# focus_project (kuhyx/utils) is not tagged yet, so it is not listed here:
-# install.sh, setup_dev.sh and CI install it from a utils checkout.
 dependencies = [
     "gatelock @ git+https://github.com/kuhyx/utils@gatelock-v0.11.0#subdirectory=gatelock",
     "freedays @ git+https://github.com/kuhyx/utils@freedays-v0.4.0#subdirectory=freedays",
+    "focus-project @ git+https://github.com/kuhyx/utils@focus-project-v0.2.0#subdirectory=focus_project",
     "sickdays @ git+https://github.com/kuhyx/utils@sickdays-v0.3.0#subdirectory=sickdays",
 ]
 

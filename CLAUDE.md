@@ -15,4 +15,4 @@
 - `focus_project` is called through the module (`focus_project.minutes_for`), never from-imported: tests and the e2e driver patch one attribute.
 - Unreadable registry: arming fails open (logged); a lock already up stays up.
 - `JUDGE_FROM` in `_constants.py` is the first judged "yesterday".
-- `focus_project` is not tagged yet, so it is not in `pyproject.toml`: `install.sh`, `scripts/setup_dev.sh` and CI install it from a `kuhyx/utils` checkout.
+- `focus-project` is pinned to a `kuhyx/utils` tag in `pyproject.toml` like gatelock; bump the tag when its API changes.
