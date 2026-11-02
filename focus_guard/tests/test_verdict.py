@@ -68,6 +68,18 @@ def test_sick_yesterday_owes_nothing(world: World) -> None:
     assert decide(DAY).reason == "yesterday kept its number"
 
 
+def test_a_sick_day_that_keeps_focus_still_locks(world: World) -> None:
+    world.short_yesterday().sick.add(DAY)
+    world.kept.add(DAY)
+    assert decide(DAY).locked
+
+
+def test_a_sick_yesterday_that_kept_focus_still_owes(world: World) -> None:
+    world.sick.add(YESTERDAY)
+    world.kept.add(YESTERDAY)
+    assert decide(DAY).reason == "yesterday fell short"
+
+
 def test_free_yesterday_owes_nothing(world: World) -> None:
     world.free.add(YESTERDAY)
     assert not decide(DAY).locked

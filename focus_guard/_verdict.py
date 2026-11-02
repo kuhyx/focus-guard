@@ -40,7 +40,7 @@ def local_today() -> date:
 
 
 def _off(day: date) -> bool:
-    return sickdays.is_sick_day(day) or freedays.is_free_day(day)
+    return sickdays.stands_down("focus", day) or freedays.is_free_day(day)
 
 
 def _kept(yesterday: date, project: Project) -> tuple[bool, int]:

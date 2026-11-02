@@ -48,6 +48,7 @@ class World:
     projects: list[Project] = field(default_factory=lambda: [project()])
     minutes: dict[date, int] = field(default_factory=dict)
     sick: set[date] = field(default_factory=set)
+    kept: set[date] = field(default_factory=set)
     free: set[date] = field(default_factory=set)
     broken: Exception | None = None
 
@@ -79,6 +80,12 @@ def world(monkeypatch: pytest.MonkeyPatch) -> World:
     monkeypatch.setattr("focus_project.active", fake.active)
     monkeypatch.setattr("focus_project.minutes_for", fake.minutes_for)
     monkeypatch.setattr("sickdays.is_sick_day", lambda day, **_k: day in fake.sick)
+    monkeypatch.setattr(
+        "sickdays.stands_down",
+        lambda locker, day, **_k: (
+            locker == "focus" and day in fake.sick and day not in fake.kept
+        ),
+    )
     monkeypatch.setattr("freedays.is_free_day", lambda day, **_k: day in fake.free)
     return fake
 
