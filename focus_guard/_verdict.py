@@ -15,6 +15,7 @@ import focus_project
 import freedays
 import sickdays
 
+from focus_guard import _standdown
 from focus_guard._constants import JUDGE_FROM
 
 if TYPE_CHECKING:
@@ -32,6 +33,7 @@ class Verdict:
     unlock_minutes: int = 0
     yesterday_minutes: int = 0
     daily_minutes: int = 0
+    held: bool = False
 
 
 def local_today() -> date:
@@ -66,8 +68,14 @@ def _preconditions(today: date) -> tuple[Project, Project] | str:
     return project, before
 
 
-def decide(today: date) -> Verdict:
-    """Locked iff yesterday missed its number and today is still short."""
+def decide(today: date, *, honor_hold: bool = True) -> Verdict:
+    """Locked iff yesterday missed its number and today is still short.
+
+    A test hold covering now stands the verdict down but never erases the
+    debt: ``honor_hold=False`` asks what would be owed once it ends.
+    """
+    if honor_hold and _standdown.active():
+        return Verdict(locked=False, reason=_standdown.HOLD_REASON, held=True)
     found = _preconditions(today)
     if isinstance(found, str):
         return Verdict(locked=False, reason=found)

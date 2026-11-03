@@ -188,3 +188,15 @@ def test_hooks_are_quiet_and_callback_errors_are_logged(
     lock.on_callback_error()
     assert "a Tk callback raised" in caplog.text
     lock.close()
+
+
+def test_a_hold_that_starts_lifts_the_lock_on_the_next_poll(
+    world: World, tmp_paths: Paths, seams: SimpleNamespace
+) -> None:
+    lock = arm(world, tmp_paths, production=True)
+    window = window_of(lock)
+    world.hold = True
+    for _ in range(POLL_INTERVAL_MS // TICK_MS):
+        tick(lock)
+    assert lock._closed
+    assert window.events[-1] == "close"

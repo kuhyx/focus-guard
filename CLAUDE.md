@@ -6,7 +6,7 @@
 - lint: `ruff check .`
 - coverage: `python3 -m pytest -q --cov --cov-branch --cov-report=xml`
 - coverage-gaps: `coverage-gaps coverage.xml`
-- e2e: `scripts/e2e_xvfb.sh short` then `met` (private Xvfb on the first free :120+, never :0)
+- e2e: `scripts/e2e_xvfb.sh short|met|hold|hold-lift` (private Xvfb on the first free :120+, never :0)
 
 ## Invariants
 
@@ -16,3 +16,4 @@
 - Unreadable registry: arming fails open (logged); a lock already up stays up.
 - `JUDGE_FROM` in `_constants.py` is the first judged "yesterday".
 - `focus-project` is pinned to a `kuhyx/utils` tag in `pyproject.toml` like gatelock; bump the tag when its API changes.
+- Test holds: `_standdown.active()` (`holds.covers("focus")`) stands the verdict down (`Verdict.held`); an open lock lifts on the next 15 s poll, the gate then waits (`holds.next_change`) and re-judges when the hold ends, so "yesterday fell short" is not erased. `holds` missing or raising: logged, behave as before (fail closed). Tests patch `_standdown.holds`.

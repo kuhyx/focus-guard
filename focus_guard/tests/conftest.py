@@ -4,14 +4,14 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta
 from types import SimpleNamespace
 from typing import TYPE_CHECKING
 
 from focus_project import Limits, Project
 import pytest
 
-from focus_guard import _lock, _paths
+from focus_guard import _lock, _paths, _standdown
 from focus_guard._paths import Paths
 from focus_guard.tests import _lock_fakes as fk
 from focus_guard.tests._days import DAY
@@ -51,6 +51,19 @@ class World:
     kept: set[date] = field(default_factory=set)
     free: set[date] = field(default_factory=set)
     broken: Exception | None = None
+    hold: bool = False
+    hold_ends_in: float | None = None
+    asked: list[str] = field(default_factory=list)
+
+    def covers(self, gate: str, now: datetime | None = None) -> bool:
+        del now
+        self.asked.append(gate)
+        return self.hold
+
+    def next_change(self, now: datetime) -> datetime | None:
+        if self.hold_ends_in is None:
+            return None
+        return now + timedelta(seconds=self.hold_ends_in)
 
     def active(self, day: date) -> Project | None:
         if self.broken:
@@ -87,6 +100,7 @@ def world(monkeypatch: pytest.MonkeyPatch) -> World:
         ),
     )
     monkeypatch.setattr("freedays.is_free_day", lambda day, **_k: day in fake.free)
+    monkeypatch.setattr(_standdown, "holds", fake)
     return fake
 
 
@@ -98,6 +112,7 @@ def _hermetic(
     monkeypatch.setenv("FOCUS_PROJECT_DATA", str(tmp_path / "focus_project"))
     monkeypatch.delenv("FOCUS_GUARD_ROOT", raising=False)
     monkeypatch.setattr("focus_guard._paths.MORNING_RETRY_SECONDS", 0.0)
+    monkeypatch.setattr(_standdown, "holds", None)
     yield
     _paths.set_override(None)
 
