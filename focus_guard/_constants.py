@@ -20,5 +20,13 @@ POLL_INTERVAL_MS: Final = 15_000
 TICK_MS: Final = 500
 """How often the Tk thread looks at the watcher's flag (no I/O)."""
 
-WATCHED_FILES: Final = frozenset({"activity.jsonl", "ledger.json"})
-"""Files in the focus_project data dir whose change can lift the lock."""
+WATCHED_FILES: Final = frozenset({"activity.jsonl", "ledger.json", "projects.json"})
+"""Files in the focus_project data dir whose change can lift the lock.
+
+``projects.json`` carries weekend answers and trips; evidence rows live in a
+subdirectory the 15 s poll covers (the window's own taps re-check at once)."""
+
+MILESTONE_KINDS: Final = frozenset({"rules", "trip_ask", "phone", "mock", "slot"})
+"""The milestone kinds the lock window has a form for (``_milestone_forms``).
+A kind focus_project adds later cannot be completed from the window, so it
+locks nothing (fail open, logged) instead of stranding the user."""

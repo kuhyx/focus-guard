@@ -1,5 +1,8 @@
 # Copyright (c) 2026 Krzysztof Rudnicki. MIT License.
-"""The lock: a gatelock consumer with no input that lets go when the numbers do.
+"""The lock: a gatelock consumer that lets go when the numbers do.
+
+A status lock has no input; a milestone lock shows one icon and its action
+(see ``_milestone_view``) and lets go when that milestone is completed.
 
 It holds until the verdict says otherwise: a file event in the focus_project
 data dir (inotify), a backstop poll, or a sick/free day or an ended project
@@ -34,7 +37,8 @@ from focus_guard._lock_view import (
     install_demo_close,
     make_vars,
 )
-from focus_guard._verdict import decide, local_today
+from focus_guard._milestone_view import MilestonePanel
+from focus_guard._verdict import decide, local_today, now_for
 from focus_guard._watch import DirWatcher
 
 if TYPE_CHECKING:
@@ -63,10 +67,11 @@ class FocusGuardLock:
         """Arm the lock. Demo mode (the default) uses a local grab."""
         assert_not_under_pytest("the focus-guard lock")
         self._today = today
+        self._shown = verdict.milestone
         self._demo = not production
         self._closed = False
         self._polls = 0
-        self._config = LockConfig(
+        config = LockConfig(
             mode="hard",
             overrideredirect=True,
             grab=GrabPolicy(
@@ -79,26 +84,40 @@ class FocusGuardLock:
         self.root.title(self._config.app_name)
         self._vars = make_vars(self.root)
         fill_vars(self._vars, verdict)
+        self._panel = (
+            MilestonePanel(
+                self.root,
+                verdict,
+                pick_dirs=paths.pick_dirs,
+                now=lambda: now_for(self._today or local_today()),
+                on_done=self._refresh,
+            )
+            if verdict.milestone
+            else None
+        )
         self._watcher = DirWatcher(paths.watch_dir, WATCHED_FILES)
         arbiter = Arbiter(
             "focus_guard",
             RANK_FOCUS_GUARD,
-            grab=self._config.resolved_grab(),
-            disable_vt=self._config.resolved_disable_vt(),
+            grab=config.resolved_grab(),
+            disable_vt=config.resolved_disable_vt(),
         )
         arbiter.publish()
         if production:
             wait_for_turn(arbiter)
         arbiter.acquire_holder()
-        self._lock = LockWindow(self.root, self._config, hooks=self, arbiter=arbiter)
+        self._lock = LockWindow(self.root, config, hooks=self, arbiter=arbiter)
         self._lock.setup()
         self._lock.grab_input()
         self.root.after(TICK_MS, self._tick)
 
     def build_surface(self, parent: tk.Misc, surface: SurfaceInfo) -> None:
-        """Paint one output; every output shows the same read-only column."""
+        """Paint one output; every output shows the same column."""
         del surface
-        build_status(parent, self._vars)
+        if self._panel is None:
+            build_status(parent, self._vars)
+        else:
+            self._panel.build(parent)
         if self._demo:
             install_demo_close(parent, self.close)
 
@@ -106,7 +125,9 @@ class FocusGuardLock:
         """Nothing per-surface to forget."""
 
     def on_focus_ready(self, surface: SurfaceInfo | None) -> None:
-        """Nothing to focus: the window takes no input."""
+        """A milestone form may have an entry to focus; the status has none."""
+        if self._panel is not None and surface is not None:
+            self._panel.focus()
 
     def on_callback_error(self) -> None:
         """A Tk callback raised: log it and keep the lock up."""
@@ -133,7 +154,7 @@ class FocusGuardLock:
         except (OSError, ValueError) as exc:
             _logger.warning("cannot re-check, keeping the lock: %s", exc)
             return
-        if not verdict.locked:
+        if not verdict.locked or verdict.milestone != self._shown:
             _logger.info("released: %s", verdict.reason)
             self.close()
             return

@@ -37,11 +37,15 @@ DATA_VAR = "FOCUS_PROJECT_DATA"
 
 @dataclass(frozen=True)
 class Paths:
-    """Data dir to watch, plus the stamps that hold the gate."""
+    """Data dir to watch, the stamps that hold the gate, and where screenshots are.
+
+    ``pick_dirs`` are searched for the rules screenshot, newest first.
+    """
 
     watch_dir: Path
     morning_session: Path
     night_lockdown: Path
+    pick_dirs: tuple[Path, ...] = ()
 
 
 def focus_data_dir() -> Path:
@@ -59,11 +63,17 @@ def _default() -> Paths:
             watch_dir=focus_data_dir(),
             morning_session=Path(root) / "morning_session.json",
             night_lockdown=Path(root) / "locked_at_epoch",
+            pick_dirs=(Path(root) / "pictures",),
         )
     return Paths(
         watch_dir=focus_data_dir(),
         morning_session=MORNING_SESSION_FILE,
         night_lockdown=NIGHT_LOCKDOWN_STAMP,
+        pick_dirs=(
+            Path.home() / "media" / "pictures" / "Screenshots",
+            Path.home() / "media" / "pictures",
+            Path.home() / "Downloads",
+        ),
     )
 
 

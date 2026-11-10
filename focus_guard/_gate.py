@@ -44,6 +44,12 @@ def _owed_after_hold(today: date | None) -> bool:
     return owed is not None and owed.locked
 
 
+def _owes_another(shown: Verdict, today: date | None) -> bool:
+    """A different lock is owed now (the next missed milestone, say)."""
+    nxt = verdict_for(today)
+    return nxt is not None and nxt.locked and nxt.milestone != shown.milestone
+
+
 def _lock_once(
     paths: Paths, verdict: Verdict, *, production: bool, today: date | None
 ) -> None:
@@ -83,5 +89,5 @@ def run_gate(
             _logger.info("not locking: %s", verdict.reason if verdict else _UNREADABLE)
             return 0
         _lock_once(paths, verdict, production=production, today=today)
-        if not _standdown.active():
+        if not _standdown.active() and not _owes_another(verdict, today):
             return 0
