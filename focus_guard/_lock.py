@@ -76,7 +76,7 @@ class FocusGuardLock:
             rank=RANK_FOCUS_GUARD,
         )
         self.root = GateRoot()
-        self.root.title("Focus Guard" + ("" if production else " [DEMO]"))
+        self.root.title(self._config.app_name)
         self._vars = make_vars(self.root)
         fill_vars(self._vars, verdict)
         self._watcher = DirWatcher(paths.watch_dir, WATCHED_FILES)

@@ -1,4 +1,5 @@
 # Copyright (c) 2026 Krzysztof Rudnicki. MIT License.
+import re
 import tkinter as tk
 from typing import TYPE_CHECKING
 
@@ -33,10 +34,29 @@ def _verdict(done: int = 15) -> Verdict:
 def test_fill_vars_shows_the_numbers(root: tk.Tk) -> None:
     shared = _lock_view.make_vars(root)
     _lock_view.fill_vars(shared, _verdict())
-    assert shared.title.get() == "Focus: Exam"
-    assert shared.today.get() == "Today 15 / 30 min"
-    assert shared.yesterday.get() == "Yesterday 10 / 120 min"
+    assert shared.title.get() == "Exam"
+    assert shared.today.get() == "15 / 30"
+    assert shared.yesterday.get() == "◀ 10 / 120"
     assert shared.fraction.get() == 0.5
+
+
+_WORD = re.compile(r"[^\W\d_]{2,}")
+
+
+def _shown(widget: tk.Misc) -> str:
+    has_text = isinstance(widget, (tk.Label, tk.Button))
+    return str(widget.cget("text")) if has_text else ""
+
+
+def test_no_widget_shows_a_word_but_the_project_name(root: tk.Tk) -> None:
+    shared = _lock_view.make_vars(root)
+    _lock_view.fill_vars(shared, _verdict())
+    _lock_view.build_status(root, shared)
+    _lock_view.install_demo_close(root, lambda: None)
+    shown = {w.winfo_name(): _shown(w) for w in _widgets(root)}
+    assert shown.pop("title") == "Exam"
+    assert len(shown) >= 5
+    assert [t for t in shown.values() if _WORD.search(t)] == []
 
 
 def test_fraction_is_capped_and_survives_zero_need(root: tk.Tk) -> None:
@@ -62,9 +82,10 @@ def test_status_column_has_no_input_and_a_live_bar(root: tk.Tk) -> None:
     column = _lock_view.build_status(root, shared)
     kinds = {type(w) for w in _widgets(column)}
     assert kinds == {tk.Label, tk.Canvas}
-    texts = [w.cget("text") for w in _widgets(column) if isinstance(w, tk.Label)]
-    assert "Work on the phone to unlock." in texts
-    bar = next(w for w in _widgets(column) if isinstance(w, tk.Canvas))
+    phone = column.nametowidget("phone")
+    assert isinstance(phone, tk.Canvas)
+    assert phone.find_withtag("body")
+    bar = column.nametowidget("bar")
     shared.fraction.set(0.25)
     root.update_idletasks()
     (rect,) = bar.find_withtag("fill")

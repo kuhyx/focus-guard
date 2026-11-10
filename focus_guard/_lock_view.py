@@ -1,5 +1,10 @@
 # Copyright (c) 2026 Krzysztof Rudnicki. MIT License.
-"""The lock window's widgets: rendering only, palette from gatelock."""
+"""The lock window's widgets: rendering only, palette from gatelock.
+
+Text-free (textgate): the only word shown is the project name kuhy typed.
+Today is the big ``done / need`` pair over the bar; yesterday is the small
+muted pair behind a back triangle; a drawn phone says where to work.
+"""
 
 from __future__ import annotations
 
@@ -8,8 +13,6 @@ import tkinter as tk
 from typing import TYPE_CHECKING, Final
 
 from gatelock import LockConfig
-
-from focus_guard import _text
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -44,15 +47,9 @@ def make_vars(root: tk.Misc) -> SharedVars:
 
 def fill_vars(shared: SharedVars, verdict: Verdict) -> None:
     """Show ``verdict``'s numbers."""
-    shared.title.set(_text.TITLE.format(name=verdict.name))
-    shared.today.set(
-        _text.TODAY.format(done=verdict.today_minutes, need=verdict.unlock_minutes)
-    )
-    shared.yesterday.set(
-        _text.YESTERDAY.format(
-            done=verdict.yesterday_minutes, need=verdict.daily_minutes
-        )
-    )
+    shared.title.set(verdict.name)
+    shared.today.set(f"{verdict.today_minutes} / {verdict.unlock_minutes}")
+    shared.yesterday.set(f"◀ {verdict.yesterday_minutes} / {verdict.daily_minutes}")
     need = max(verdict.unlock_minutes, 1)
     shared.fraction.set(min(verdict.today_minutes / need, 1.0))
 
@@ -62,15 +59,25 @@ def _label(
     *,
     fg: str,
     font: tuple[str, int] | tuple[str, int, str],
-    var: tk.StringVar | None = None,
-    text: str = "",
+    var: tk.StringVar,
+    name: str,
 ) -> None:
-    label = tk.Label(parent, bg=_PALETTE.bg, fg=fg, font=font)
-    if var is None:
-        label.configure(text=text)
-    else:
-        label.configure(textvariable=var)
+    label = tk.Label(
+        parent, name=name, bg=_PALETTE.bg, fg=fg, font=font, textvariable=var
+    )
     label.pack(anchor="w", pady=(0, 16))
+
+
+def _draw_phone(parent: tk.Misc) -> None:
+    """A phone outline (body, screen, home dot): work there to unlock."""
+    phone = tk.Canvas(
+        parent, name="phone", width=40, height=64, bg=_PALETTE.bg, highlightthickness=0
+    )
+    accent = _PALETTE.accent
+    phone.create_rectangle(2, 2, 38, 62, outline=accent, width=3, tags="body")
+    phone.create_rectangle(8, 9, 32, 48, fill=accent, width=0, tags="screen")
+    phone.create_oval(17, 52, 23, 58, fill=accent, width=0, tags="dot")
+    phone.pack(anchor="w")
 
 
 def build_status(parent: tk.Misc, shared: SharedVars) -> tk.Frame:
@@ -78,10 +85,12 @@ def build_status(parent: tk.Misc, shared: SharedVars) -> tk.Frame:
     parent.configure({"bg": _PALETTE.bg})
     column = tk.Frame(parent, bg=_PALETTE.bg)
     column.place(relx=0.5, rely=0.5, anchor="center")
-    _label(column, var=shared.title, fg=_PALETTE.accent, font=(_FONT, 32, "bold"))
-    _label(column, var=shared.today, fg=_PALETTE.fg, font=(_FONT, 20))
+    title_font = (_FONT, 32, "bold")
+    _label(column, var=shared.title, fg=_PALETTE.accent, font=title_font, name="title")
+    _label(column, var=shared.today, fg=_PALETTE.fg, font=(_FONT, 20), name="today")
     gauge = tk.Canvas(
         column,
+        name="bar",
         width=BAR_WIDTH,
         height=BAR_HEIGHT,
         bg=_PALETTE.field_bg,
@@ -90,8 +99,9 @@ def build_status(parent: tk.Misc, shared: SharedVars) -> tk.Frame:
     gauge.pack(anchor="w", pady=(0, 16))
     _draw_bar(gauge, shared.fraction)
     shared.fraction.trace_add("write", lambda *_a: _draw_bar(gauge, shared.fraction))
-    _label(column, var=shared.yesterday, fg=_PALETTE.muted, font=(_FONT, 14))
-    _label(column, text=_text.HINT, fg=_PALETTE.accent, font=(_FONT, 16))
+    muted = _PALETTE.muted
+    _label(column, var=shared.yesterday, fg=muted, font=(_FONT, 14), name="yesterday")
+    _draw_phone(column)
     return column
 
 
@@ -105,6 +115,6 @@ def _draw_bar(gauge: tk.Canvas, fraction: tk.DoubleVar) -> None:
 
 def install_demo_close(parent: tk.Misc, on_close: Callable[[], None]) -> None:
     """A close button so a demo can never trap the developer."""
-    tk.Button(parent, text=_text.DEMO_CLOSE, command=on_close).place(
+    tk.Button(parent, name="close", text="✕", command=on_close).place(
         relx=0.98, rely=0.02, anchor="ne"
     )

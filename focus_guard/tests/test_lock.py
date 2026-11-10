@@ -32,11 +32,11 @@ def test_hard_global_grab_in_production(
         window = window_of(lock)
         assert window.config.resolved_grab() == "global"
         assert window.config.resolved_disable_vt()
-        assert lock.root.titles == ["Focus Guard"]
+        assert lock.root.titles == ["focus_guard"]
         assert len(seams.turns) == 1
         assert window.events == ["setup", "grab"]
         assert window.arbiter.events == ["publish", "acquire"]
-        assert shown(lock).today.value == "Today 0 / 30 min"
+        assert shown(lock).today.value == "0 / 30"
     finally:
         lock.close()
 
@@ -47,7 +47,7 @@ def test_demo_uses_a_local_grab_and_a_close_button(
     lock = arm(world, tmp_paths)
     window = window_of(lock)
     assert window.config.resolved_grab() == "local"
-    assert lock.root.titles == ["Focus Guard [DEMO]"]
+    assert lock.root.titles == ["focus_guard"]
     assert seams.turns == []
     lock.build_surface(anything("parent"), anything(SimpleNamespace()))
     assert seams.demo == ["parent", lock.close]
@@ -108,7 +108,7 @@ def test_still_short_updates_the_numbers_and_stays(
     lock._watcher.changed.set()
     tick(lock)
     assert not lock._closed
-    assert shown(lock).today.value == "Today 12 / 30 min"
+    assert shown(lock).today.value == "12 / 30"
     assert not lock._watcher.changed.is_set()
     lock.close()
 
