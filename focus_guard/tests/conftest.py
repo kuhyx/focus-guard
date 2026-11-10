@@ -13,6 +13,7 @@ import pytest
 
 from focus_guard import _lock, _paths, _standdown
 from focus_guard._paths import Paths
+from focus_guard.tests import _display_guard
 from focus_guard.tests import _lock_fakes as fk
 from focus_guard.tests._days import DAY
 
@@ -102,6 +103,12 @@ def world(monkeypatch: pytest.MonkeyPatch) -> World:
     monkeypatch.setattr("freedays.is_free_day", lambda day, **_k: day in fake.free)
     monkeypatch.setattr(_standdown, "holds", fake)
     return fake
+
+
+@pytest.fixture(autouse=True, scope="session")
+def _private_display() -> None:
+    """Abort before any test (so any Tk root) on a non-xvfb-run DISPLAY."""
+    _display_guard.enforce()
 
 
 @pytest.fixture(autouse=True)
