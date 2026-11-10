@@ -92,6 +92,7 @@ def _done(*pairs: tuple[str, str], now: datetime, folder: Path) -> None:
             shot = iw.screenshot(folder)
             focus_project.record_evidence(iw.PID, mid, kind, file=shot, now=now)
         elif kind == "score":
+            iw.focus_session()
             focus_project.record_evidence(iw.PID, mid, kind, 80, now=now)
         else:
             focus_project.answer_weekend(

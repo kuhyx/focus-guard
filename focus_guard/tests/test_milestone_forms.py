@@ -120,6 +120,7 @@ def test_phone_recheck_shows_the_dot_and_tap_completes(
 
 
 def test_mock_takes_a_score(root: tk.Tk, tmp_path: Path) -> None:
+    iw.focus_session()
     _done(("rules", "file"), (SAT_ID, "no_trip"), now=SUN, folder=tmp_path)
     ctx = Ctx(root, SUN, ())
     assert ctx.milestone == "mock"

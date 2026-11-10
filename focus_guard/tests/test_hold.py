@@ -60,3 +60,14 @@ def test_real_paths_without_a_sandbox(monkeypatch: pytest.MonkeyPatch) -> None:
     set_override(None)
     monkeypatch.delenv("FOCUS_GUARD_ROOT", raising=False)
     assert paths().night_lockdown.is_absolute()
+
+
+def test_evidence_dir_comes_from_focus_projects_seam(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    set_override(None)
+    monkeypatch.delenv("FOCUS_GUARD_ROOT", raising=False)
+    monkeypatch.setenv("FOCUS_PROJECT_DATA", str(tmp_path / "d"))
+    assert paths().evidence_dir == tmp_path / "d" / "evidence"
+    monkeypatch.setenv("FOCUS_GUARD_ROOT", str(tmp_path / "sb"))
+    assert paths().evidence_dir == tmp_path / "d" / "evidence"

@@ -37,6 +37,15 @@ def test_atomic_replace_is_seen(tmp_path: Path) -> None:
         watcher.close()
 
 
+def test_no_names_means_every_file_raises_the_flag(tmp_path: Path) -> None:
+    watcher = DirWatcher(tmp_path, None)
+    try:
+        (tmp_path / "iv.jsonl").write_text("{}\n")
+        assert _wait(watcher.changed)
+    finally:
+        watcher.close()
+
+
 def test_other_files_are_ignored(tmp_path: Path) -> None:
     watcher = DirWatcher(tmp_path, {"activity.jsonl"})
     try:

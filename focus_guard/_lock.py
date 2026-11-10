@@ -95,7 +95,10 @@ class FocusGuardLock:
             if verdict.milestone
             else None
         )
-        self._watcher = DirWatcher(paths.watch_dir, WATCHED_FILES)
+        self._watchers = (
+            DirWatcher(paths.watch_dir, WATCHED_FILES),
+            DirWatcher(paths.evidence_watch_dir, None),
+        )
         arbiter = Arbiter(
             "focus_guard",
             RANK_FOCUS_GUARD,
@@ -110,6 +113,16 @@ class FocusGuardLock:
         self._lock.setup()
         self._lock.grab_input()
         self.root.after(TICK_MS, self._tick)
+
+    @property
+    def _watcher(self) -> DirWatcher:
+        """The focus_project data dir (activity, ledger, registry)."""
+        return self._watchers[0]
+
+    @property
+    def _evidence_watcher(self) -> DirWatcher:
+        """The evidence dir: any write there can complete a milestone."""
+        return self._watchers[1]
 
     def build_surface(self, parent: tk.Misc, surface: SurfaceInfo) -> None:
         """Paint one output; every output shows the same column."""
@@ -135,13 +148,15 @@ class FocusGuardLock:
 
     def on_close(self) -> None:
         """Every exit path: stop the watcher."""
-        self._watcher.close()
+        for watcher in self._watchers:
+            watcher.close()
 
     def _tick(self) -> None:
         self._polls += TICK_MS
         due = self._polls >= POLL_INTERVAL_MS
-        if self._watcher.changed.is_set() or due:
-            self._watcher.changed.clear()
+        if due or any(w.changed.is_set() for w in self._watchers):
+            for watcher in self._watchers:
+                watcher.changed.clear()
             self._polls = 0
             self._refresh()
         if not self._closed:

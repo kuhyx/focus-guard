@@ -24,12 +24,12 @@ _HEADER: Final = struct.Struct("iIII")
 
 
 class DirWatcher:
-    """Sets :attr:`changed` when one of ``names`` is written in ``directory``."""
+    """Sets :attr:`changed` when one of ``names`` (None: any file) is written."""
 
-    def __init__(self, directory: Path, names: Collection[str]) -> None:
+    def __init__(self, directory: Path, names: Collection[str] | None) -> None:
         """Start watching; on any failure the flag never fires (poll covers)."""
         self.changed = threading.Event()
-        self._names = frozenset(names)
+        self._names = None if names is None else frozenset(names)
         self._stop_read, self._stop_write = os.pipe()
         self._fd = -1
         self._thread: threading.Thread | None = None
@@ -65,7 +65,7 @@ class DirWatcher:
                 _wd, _mask, _cookie, size = _HEADER.unpack_from(data, offset)
                 start = offset + _HEADER.size
                 name = data[start : start + size].rstrip(b"\0").decode(errors="replace")
-                if name in self._names:
+                if self._names is None or name in self._names:
                     self.changed.set()
                 offset = start + size
 

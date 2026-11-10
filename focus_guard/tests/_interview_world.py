@@ -4,10 +4,12 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import date, datetime, timedelta
+from datetime import date, datetime, time, timedelta
+import json
 from typing import TYPE_CHECKING
 
 import focus_project
+from focus_project._paths import activity_path
 
 from focus_guard import _standdown
 
@@ -69,6 +71,22 @@ def install(monkeypatch: pytest.MonkeyPatch) -> IWorld:
     monkeypatch.setattr("focus_project.minutes_for", lambda _day: 999)
     monkeypatch.setattr(_standdown, "holds", fake)
     return fake
+
+
+def focus_session() -> None:
+    """A 100 min contiguous timer session on Nov 9, before any score row."""
+    first = datetime.combine(START, time(8))
+    activity_path().parent.mkdir(parents=True, exist_ok=True)
+    with activity_path().open("a", encoding="utf-8") as handle:
+        for offset in range(0, 101, 5):
+            row = {
+                "ts": (first + timedelta(minutes=offset)).timestamp(),
+                "source": "timer",
+                "kind": "start" if offset == 0 else "check" + "in",  # the timer kind
+                "project": PID,
+                "dev": "pc",
+            }
+            handle.write(json.dumps(row) + "\n")
 
 
 def screenshot(folder: Path, name: str = "shot.png") -> Path:

@@ -68,6 +68,7 @@ def test_a_backwards_range_changes_nothing() -> None:
 
 def test_a_score_completes_the_mock() -> None:
     mock = "mock"
+    iw.focus_session()
     assert _actions.submit_score(iw.PID, mock, " 87,5 ", iw.FRI)
     assert _milestone(iw.FRI, mock).completed
 

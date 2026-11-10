@@ -9,6 +9,7 @@ from pathlib import Path
 import time
 from typing import TYPE_CHECKING
 
+from focus_project._paths import evidence_dir
 from gatelock.morning_session import (
     MORNING_RETRY_SECONDS,
     MORNING_SESSION_FILE,
@@ -46,6 +47,14 @@ class Paths:
     morning_session: Path
     night_lockdown: Path
     pick_dirs: tuple[Path, ...] = ()
+    evidence_dir: Path | None = None
+    """Where other processes (tutor) append milestone evidence; None = the
+    ``evidence`` subdirectory of ``watch_dir``."""
+
+    @property
+    def evidence_watch_dir(self) -> Path:
+        """The directory whose writes can complete a milestone."""
+        return self.evidence_dir or self.watch_dir / "evidence"
 
 
 def focus_data_dir() -> Path:
@@ -61,12 +70,14 @@ def _default() -> Paths:
     if root:
         return Paths(
             watch_dir=focus_data_dir(),
+            evidence_dir=evidence_dir(),
             morning_session=Path(root) / "morning_session.json",
             night_lockdown=Path(root) / "locked_at_epoch",
             pick_dirs=(Path(root) / "pictures",),
         )
     return Paths(
         watch_dir=focus_data_dir(),
+        evidence_dir=evidence_dir(),
         morning_session=MORNING_SESSION_FILE,
         night_lockdown=NIGHT_LOCKDOWN_STAMP,
         pick_dirs=(

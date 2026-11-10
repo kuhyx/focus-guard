@@ -1,6 +1,7 @@
 # Copyright (c) 2026 Krzysztof Rudnicki. MIT License.
 from __future__ import annotations
 
+from dataclasses import replace
 from datetime import timedelta
 from types import SimpleNamespace
 from typing import TYPE_CHECKING
@@ -20,6 +21,8 @@ from focus_guard.tests._lock_fakes import (
 )
 
 if TYPE_CHECKING:
+    from pathlib import Path
+
     from focus_guard._paths import Paths
     from focus_guard.tests.conftest import World
 
@@ -84,6 +87,34 @@ def test_a_real_file_write_raises_the_flag(
     try:
         (tmp_paths.watch_dir / "activity.jsonl").write_text("{}\n")
         assert lock._watcher.changed.wait(3)
+    finally:
+        lock.close()
+
+
+def test_evidence_written_by_another_process_lifts_the_lock(
+    world: World, tmp_paths: Paths, seams: SimpleNamespace
+) -> None:
+    lock = arm(world, tmp_paths)
+    try:
+        world.minutes[DAY] = 30
+        evidence = tmp_paths.watch_dir / "evidence"
+        evidence.mkdir(parents=True, exist_ok=True)
+        (evidence / "iv.jsonl").write_text("{}\n")
+        assert lock._evidence_watcher.changed.wait(3)
+        tick(lock)
+        assert lock._closed
+    finally:
+        lock.close()
+
+
+def test_evidence_dir_follows_the_paths(
+    world: World, tmp_paths: Paths, seams: SimpleNamespace, tmp_path: Path
+) -> None:
+    where = replace(tmp_paths, evidence_dir=tmp_path / "elsewhere")
+    lock = arm(world, where)
+    try:
+        (tmp_path / "elsewhere" / "iv.jsonl").write_text("{}\n")
+        assert lock._evidence_watcher.changed.wait(3)
     finally:
         lock.close()
 

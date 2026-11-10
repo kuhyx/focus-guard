@@ -23,8 +23,9 @@ TICK_MS: Final = 500
 WATCHED_FILES: Final = frozenset({"activity.jsonl", "ledger.json", "projects.json"})
 """Files in the focus_project data dir whose change can lift the lock.
 
-``projects.json`` carries weekend answers and trips; evidence rows live in a
-subdirectory the 15 s poll covers (the window's own taps re-check at once)."""
+``projects.json`` carries weekend answers and trips. Evidence rows live in
+the ``evidence`` subdirectory, watched separately (any file) so a score or
+tap written by another process (tutor) lifts the lock at once."""
 
 MILESTONE_KINDS: Final = frozenset({"rules", "trip_ask", "phone", "mock", "slot"})
 """The milestone kinds the lock window has a form for (``_milestone_forms``).
