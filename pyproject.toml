@@ -7,7 +7,7 @@ requires-python = ">=3.14"
 # freedays / sickdays: the shared pools every gate consults; holds: declared
 # test holds (the gate stands down while one is active, fail closed).
 dependencies = [
-    "gatelock @ git+https://github.com/kuhyx/utils@gatelock-v0.12.0#subdirectory=gatelock",
+    "gatelock @ git+https://github.com/kuhyx/utils@gatelock-v0.13.0#subdirectory=gatelock",
     "freedays @ git+https://github.com/kuhyx/utils@freedays-v0.4.0#subdirectory=freedays",
     "focus-project @ git+https://github.com/kuhyx/utils@focus-project-v0.10.0#subdirectory=focus_project",
     "sickdays @ git+https://github.com/kuhyx/utils@sickdays-v0.4.0#subdirectory=sickdays",
