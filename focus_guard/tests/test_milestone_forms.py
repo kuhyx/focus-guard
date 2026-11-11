@@ -45,9 +45,9 @@ def test_trip_no_answers_the_weekend(root: tk.Tk, tmp_path: Path) -> None:
     assert ctx.milestone == SAT_ID
     ctx.tap("no_trip")
     assert ctx.done == 1
-    assert dict(focus_project.active(iw.FRI.date()).weekend_answers) == {
-        iw.SATURDAY: False
-    }
+    project = focus_project.active(iw.FRI.date())
+    assert project is not None
+    assert dict(project.weekend_answers) == {iw.SATURDAY: False}
 
 
 def test_trip_yes_takes_a_date_range(root: tk.Tk, tmp_path: Path) -> None:
@@ -60,7 +60,9 @@ def test_trip_yes_takes_a_date_range(root: tk.Tk, tmp_path: Path) -> None:
     ctx.tap("day2026-11-15")
     ctx.tap("ok")
     assert ctx.done == 1
-    trips = focus_project.active(iw.FRI.date()).trips
+    project = focus_project.active(iw.FRI.date())
+    assert project is not None
+    trips = project.trips
     assert [(t.start, t.end) for t in trips] == [
         (date(2026, 11, 13), date(2026, 11, 15))
     ]
