@@ -10,6 +10,8 @@ readonly SYSTEM_PYTHON="/usr/bin/python3"
 readonly UNIT_DIR="${HOME}/.config/systemd/user"
 readonly UNITS=(focus-guard.service focus-guard.timer)
 readonly SETTLE_SEC=3
+# pip clones kuhyx/utils once per pinned package; DNS blips fail single clones.
+readonly INSTALL_TRIES=3
 
 log() { printf 'deploy: %s\n' "$1" >&2; }
 fail() { printf 'deploy: FAILED -- %s\n' "$1" >&2; exit 1; }
@@ -21,7 +23,13 @@ update_checkout() {
 }
 
 install_and_restart() {
-    "${LIVE_DIR}/install.sh" || fail "install.sh"
+    local try
+    for ((try = 1; ; try++)); do
+        "${LIVE_DIR}/install.sh" && break
+        ((try < INSTALL_TRIES)) || fail "install.sh (${INSTALL_TRIES} tries)"
+        log "install.sh failed, retry ${try}/${INSTALL_TRIES} in 10 s"
+        sleep 10
+    done
     log "restarting focus-guard.service"
     # Exits 0 at once when nothing is owed; keeps the lock window up when it is.
     systemctl --user restart focus-guard.service || fail "restart focus-guard.service"
