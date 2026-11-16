@@ -8,9 +8,9 @@ requires-python = ">=3.14"
 # test holds (the gate stands down while one is active, fail closed).
 dependencies = [
     "gatelock @ git+https://github.com/kuhyx/utils@gatelock-v0.13.0#subdirectory=gatelock",
-    "freedays @ git+https://github.com/kuhyx/utils@freedays-v0.4.0#subdirectory=freedays",
+    "freedays @ git+https://github.com/kuhyx/utils@freedays-v0.4.3#subdirectory=freedays",
     "focus-project @ git+https://github.com/kuhyx/utils@focus-project-v0.10.0#subdirectory=focus_project",
-    "sickdays @ git+https://github.com/kuhyx/utils@sickdays-v0.4.0#subdirectory=sickdays",
+    "sickdays @ git+https://github.com/kuhyx/utils@sickdays-v0.5.4#subdirectory=sickdays",
     "holds @ git+https://github.com/kuhyx/utils@holds-v0.1.0#subdirectory=holds",
 ]
 
@@ -18,7 +18,7 @@ dependencies = [
 focus-guard = "focus_guard._cli:main"
 
 [project.optional-dependencies]
-dev = ["mypy==2.4.1", "pylint==4.1.3", "pytest==9.2.0", "pytest-cov==7.1.0"]
+dev = ["mypy==2.4.1", "pylint==4.1.4", "pytest==9.2.0", "pytest-cov==7.1.0"]
 
 [build-system]
 requires = ["setuptools>=61"]
