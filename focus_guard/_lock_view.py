@@ -13,6 +13,7 @@ import tkinter as tk
 from typing import TYPE_CHECKING, Final
 
 from gatelock import LockConfig
+from kuhy_credit.tk import KuhyCredit
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -20,6 +21,7 @@ if TYPE_CHECKING:
     from focus_guard._verdict import Verdict
 
 _PALETTE: Final = LockConfig().palette
+CREDIT_MARGIN: Final = 16
 _FONT: Final = LockConfig().typography.font_family
 BAR_WIDTH: Final = 640
 BAR_HEIGHT: Final = 16
@@ -118,3 +120,16 @@ def install_demo_close(parent: tk.Misc, on_close: Callable[[], None]) -> None:
     tk.Button(parent, name="close", text="✕", command=on_close).place(
         relx=0.98, rely=0.02, anchor="ne"
     )
+
+
+def install_credit(
+    parent: tk.Misc, *, opener: Callable[[str], object] | None = None
+) -> KuhyCredit:
+    """The shared kuhy logo in the bottom-right corner of one output.
+
+    Its words only show after a tap on the logo, so the window stays
+    text-free until asked; ``opener`` is the test seam for the website.
+    """
+    credit = KuhyCredit(parent, opener=opener)
+    credit.place(relx=1.0, rely=1.0, x=-CREDIT_MARGIN, y=-CREDIT_MARGIN, anchor="se")
+    return credit

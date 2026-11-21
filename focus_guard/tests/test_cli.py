@@ -65,3 +65,8 @@ def test_module_entry_point_exits_with_main_status(
     with pytest.raises(SystemExit) as exit_info:
         runpy.run_module("focus_guard", run_name="__main__")
     assert exit_info.value.code == 0
+
+
+def test_parser_includes_credit_line() -> None:
+    help_text = _cli._parser().format_help()
+    assert "https://kuhy.duckdns.org" in help_text

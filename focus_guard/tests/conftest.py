@@ -128,6 +128,7 @@ def _hermetic(
 def seams(monkeypatch: pytest.MonkeyPatch) -> SimpleNamespace:
     turns: list[fk.FakeArbiter] = []
     demo: list[object] = []
+    logos: list[object] = []
     monkeypatch.setattr(_lock, "assert_not_under_pytest", lambda _what: None)
     monkeypatch.setattr(_lock, "GateRoot", fk.FakeRoot)
     monkeypatch.setattr(_lock, "Arbiter", fk.FakeArbiter)
@@ -149,4 +150,5 @@ def seams(monkeypatch: pytest.MonkeyPatch) -> SimpleNamespace:
     monkeypatch.setattr(
         _lock, "install_demo_close", lambda _parent, cb: demo.append(cb)
     )
-    return SimpleNamespace(turns=turns, demo=demo)
+    monkeypatch.setattr(_lock, "install_credit", logos.append)
+    return SimpleNamespace(turns=turns, demo=demo, credits=logos)

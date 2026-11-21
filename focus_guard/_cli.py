@@ -9,6 +9,8 @@ import logging
 import sys
 from typing import TYPE_CHECKING
 
+from kuhy_credit import credit_line
+
 from focus_guard._gate import run_gate, verdict_for
 from focus_guard._paths import paths
 
@@ -37,7 +39,7 @@ def _cmd_status(args: argparse.Namespace) -> int:
 
 
 def _parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(prog="focus-guard")
+    parser = argparse.ArgumentParser(prog="focus-guard", epilog=credit_line())
     subs = parser.add_subparsers(dest="command", required=True)
     lock = subs.add_parser("lock", help="run the gate (locks only when owed)")
     lock.add_argument("--production", action="store_true")

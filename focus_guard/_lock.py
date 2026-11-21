@@ -34,6 +34,7 @@ from focus_guard._constants import (
 from focus_guard._lock_view import (
     build_status,
     fill_vars,
+    install_credit,
     install_demo_close,
     make_vars,
 )
@@ -131,6 +132,7 @@ class FocusGuardLock:
             build_status(parent, self._vars)
         else:
             self._panel.build(parent)
+        install_credit(parent)
         if self._demo:
             install_demo_close(parent, self.close)
 

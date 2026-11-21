@@ -88,6 +88,7 @@ def test_production_has_no_close_button(
     lock = _arm(tmp_paths, production=True)
     lock.build_surface(anything("parent"), anything(SimpleNamespace()))
     assert seams.demo == []
+    assert seams.credits == ["parent"]
     lock.close()
 
 

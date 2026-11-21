@@ -3,6 +3,7 @@ import re
 import tkinter as tk
 from typing import TYPE_CHECKING
 
+from kuhy_credit.tk import KuhyCredit
 import pytest
 
 from focus_guard import _lock_view
@@ -98,3 +99,15 @@ def test_demo_close_button_calls_back(root: tk.Tk) -> None:
     button = next(w for w in _widgets(root) if isinstance(w, tk.Button))
     button.invoke()
     assert called == [1]
+
+
+def test_the_credit_logo_sits_in_the_bottom_right(root: tk.Tk) -> None:
+    opened: list[str] = []
+    credit = _lock_view.install_credit(root, opener=opened.append)
+    assert isinstance(credit, KuhyCredit)
+    assert credit.master is root
+    info = credit.place_info()
+    assert (info["relx"], info["rely"], info["anchor"]) == ("1", "1", "se")
+    credit.open()
+    credit._activate()
+    assert opened == ["https://kuhy.duckdns.org"]
