@@ -10,9 +10,10 @@ JUDGE_FROM: Final = date(2026, 11, 2)
 """The first "yesterday" the gate judges: the first project day. Nothing
 before it is owed. Move it later if the phone timer is not crediting yet."""
 
-RANK_FOCUS_GUARD: Final = 120
-"""gatelock arbitration rank: below book-guard (125) and leetcode-guard
-(150), above diet-guard (100). A literal, so no gatelock release is needed."""
+RANK_FOCUS_GUARD: Final = 128
+"""gatelock arbitration rank: after diet-guard (130), before leetcode-guard
+(125), which goes last (``DOCS-lock-order.md``). A literal, so no gatelock
+release is needed."""
 
 POLL_INTERVAL_MS: Final = 15_000
 """Backstop re-check while locked, in case an inotify event was missed."""
