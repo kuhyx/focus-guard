@@ -20,6 +20,20 @@ if TYPE_CHECKING:
 PALETTE: Final = LockConfig().palette
 GRID: Final = 100
 BUTTON_SIZE: Final = 240
+# gatelock's pixel type scale is authored for 1080p; the icons are sized for
+# 4K (240 px), so the tip doubles the subtitle size to sit in proportion.
+TIP_FONT: Final = LockConfig().font("subtitle", scale=2)
+_TIP_GAP: Final = 24
+
+# One hover word per tappable glyph (textgate allows one word naming an icon).
+TIPS: Final[dict[str, str]] = {
+    "ok": "Send",
+    "calendar_ok": "Confirm",
+    "trip": "Trip",
+    "no_trip": "Stay",
+    "recheck": "Recheck",
+    "offline": "Offline",
+}
 
 
 def _tags(*, solid: bool) -> tuple[str, ...]:
@@ -119,6 +133,55 @@ def recolor(canvas: tk.Canvas, color: str) -> None:
     canvas.itemconfigure("solid", fill=color)
 
 
+def _place_tip(tip: tk.Label, x_root: int, y_root: int) -> None:
+    """Put ``tip`` below-right of the pointer, kept inside its window."""
+    top = tip.master
+    tip.update_idletasks()
+    x = x_root - top.winfo_rootx() + _TIP_GAP
+    y = y_root - top.winfo_rooty() + _TIP_GAP
+    x = min(x, top.winfo_width() - tip.winfo_reqwidth())
+    y = min(y, top.winfo_height() - tip.winfo_reqheight())
+    tip.place(x=x, y=y)
+    tip.lift()
+
+
+def attach_tip(widget: tk.Widget, word: str) -> None:
+    """Show ``word`` beside the pointer while it hovers ``widget``.
+
+    The tip is a label placed on the lock window itself, not its own
+    Toplevel: gatelock keeps lifting the lock surface, which would bury a
+    separate window within one tick.
+    """
+    shown: list[tk.Label] = []
+
+    def show(event: tk.Event[tk.Misc]) -> None:
+        hide()
+        top = widget.winfo_toplevel()
+        tip = tk.Label(
+            top,
+            text=word,
+            bg=PALETTE.field_bg,
+            fg=PALETTE.fg,
+            font=TIP_FONT,
+            name="tip",
+        )
+        shown.append(tip)
+        _place_tip(tip, event.x_root, event.y_root)
+
+    def follow(event: tk.Event[tk.Misc]) -> None:
+        for tip in shown:
+            _place_tip(tip, event.x_root, event.y_root)
+
+    def hide(_event: object = None) -> None:
+        while shown:
+            shown.pop().destroy()
+
+    widget.bind("<Enter>", show, add="+")
+    widget.bind("<Motion>", follow, add="+")
+    widget.bind("<Leave>", hide, add="+")
+    widget.bind("<Destroy>", hide, add="+")
+
+
 def hero(
     parent: tk.Misc, glyph: str, size: int, *, color: str, name: str = ""
 ) -> tk.Canvas:
@@ -168,4 +231,6 @@ def icon_button(
     """A glyph you tap; the caller places it."""
     canvas = make_tap(parent, BUTTON_SIZE, command, name=name)
     draw(canvas, glyph, BUTTON_SIZE, color)
+    if glyph in TIPS:
+        attach_tip(canvas, TIPS[glyph])
     return canvas

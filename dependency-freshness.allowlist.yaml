@@ -1,0 +1,11 @@
+# Repo-local additions to the fleet-wide allowlist in ~/src/utils.
+exceptions:
+  - ecosystem: gittag
+    package: kuhy-credit
+    pinned: "0.3.1"
+    latest_known: "0.3.2"
+    reason: >-
+      sickdays 0.5.8 (its latest tag) pins kuhy-credit 0.3.1 exactly, so pip
+      cannot resolve 0.3.2 here. When a sickdays tag takes kuhy-credit 0.3.2,
+      bump both pins and drop this entry.
+    blocked_by: transitive:sickdays@0.5.8

@@ -3,6 +3,8 @@
 
 from __future__ import annotations
 
+from pathlib import Path
+import tempfile
 import tkinter as tk
 from typing import NoReturn
 
@@ -10,7 +12,8 @@ import pytest
 
 from focus_guard.tests import _display_guard as guard
 
-XVFB_AUTH = "/tmp/xvfb-run.AbC123/Xauthority.xYz"
+# xvfb-run makes its dir with mktemp, so it follows TMPDIR like the guard.
+XVFB_AUTH = str(Path(tempfile.gettempdir()) / "xvfb-run.AbC123" / "Xauthority.xYz")
 
 
 @pytest.mark.parametrize(
