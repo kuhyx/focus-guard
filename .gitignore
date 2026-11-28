@@ -4,6 +4,6 @@ __pycache__/
 .coverage
 coverage.lcov
 .pytest_cache/
-.venv/
+.venv
 .mypy_cache/
 .ruff_cache/
