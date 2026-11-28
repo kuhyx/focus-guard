@@ -3,9 +3,9 @@
 - run: `python3 -m focus_guard status` (verdict, never locks); `python3 -m focus_guard lock` (demo window with a close button)
 - test: `env -u DISPLAY xvfb-run -a .venv/bin/python -m pytest -p no:cacheprovider -q` (always under xvfb-run, never the live display: `tests/conftest.py` aborts the session on any DISPLAY that is not an xvfb-run one)
 - test-changed: `scripts/test_changed.sh`
-- lint: `ruff check .`
-- coverage: `python3 -m pytest -q --cov --cov-branch --cov-report=xml`
-- coverage-gaps: `coverage-gaps coverage.xml`
+- lint: n/a: dropped (kuhy, 2026-11-27)
+- coverage: n/a: dropped (kuhy, 2026-11-27)
+- coverage-gaps: n/a: dropped (kuhy, 2026-11-27)
 - e2e: `scripts/e2e_xvfb.sh short|met|hold|hold-lift`, `scripts/e2e_milestone.sh lock|done|trip|phone|mock|slot` (private Xvfb on the first free :120+, never :0; `lock` drives real xdotool clicks)
 - deploy: `scripts/deploy.sh` (pulls `~/src/focus-guard` with `--ff-only`, reruns `install.sh`, restarts `focus-guard.service`, health-checks; `--check` = health check only)
 
